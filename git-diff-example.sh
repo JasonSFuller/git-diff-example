@@ -1,12 +1,23 @@
 #!/bin/bash
 
+# NOTE:  Tested on Ubuntu 20.04.4 LTS with git version 2.25.1.
+
 # Pre-flight checks
 function error { echo "ERROR: $*" >&2; exit 1; }
-if [[ -d ~/src/git-diff-example/test ]]; then
-  rm -rf ~/src/git-diff-example/test
+script=$(realpath -- "$0")
+script_dir=$(dirname -- "${script}")
+if [[ -z "${script_dir}" ]]; then error "script dir missing"; fi
+if [[ -d "${script_dir}/test" ]]; then
+  rm -rf "${script_dir}/test"
 fi
-mkdir -p ~/src/git-diff-example/test
+mkdir -p "${script_dir}/test"
 cd "$_" || error "could not change into dir"
+
+tput setaf 6
+echo -e "\n####################################################################"
+echo -e "#  Creating local git repo (./test) to examine 'git diff' output   #"
+echo -e "####################################################################\n"
+tput sgr0
 
 # Create a new local repo and rename the default branch from 'master' to 'main.'
 # NOTE:  This work-around is for older versions of git.  For newer versions (git
@@ -16,8 +27,8 @@ cd "$_" || error "could not change into dir"
 #   Git 2.28.0 release info:
 #     https://lore.kernel.org/git/xmqq5za8hpir.fsf@gitster.c.googlers.com/
 git init
-git branch -m main
-git symbolic-ref HEAD refs/heads/main
+# git branch -m main # for existing branches
+git symbolic-ref HEAD refs/heads/main # since no commits, the branch doesn't yet exist
 
 # Just in case you're on a box where there defaults haven't been set, set the
 # required git variables and make them local to this repo only.
@@ -72,36 +83,88 @@ git log
 # record the various 'git diff' variations (default, 2-dot, 3-dot, etc)
 git diff B C   > diff-B-space-C.txt
 git diff B..C  > diff-B-2dot-C.txt
-git checkout working
-git diff B > diff-B-from-main.txt
-git checkout main
-git diff C > diff-C-from-working.txt
-
 git diff B...C > diff-B-3dot-C.txt
+git diff C..B  > diff-C-2dot-B.txt
+git checkout working && git diff B > diff-B-from-working.txt
+git checkout main    && git diff C > diff-C-from-main.txt
 
+# and show the differences (with color) of the primary modes
+tput setaf 6
+echo -e "\n####################################################################"
+echo -e "#  Executing:  git diff B C                                        #"
+echo -e "#  -- This is the CLI DEFAULT mode, which is the same as 2-dot.    #"
+echo -e "####################################################################\n"
+tput sgr0
 
-# and show the differences (with color)
-echo '--- git diff B C # default ----------------------------------------------'
-git diff --color B C
+git --no-pager diff --color B C
 
-echo '--- git diff B..C # 2dot ------------------------------------------------'
-git diff --color B..C
+tput setaf 6
+echo -e "\n####################################################################"
+echo -e "#  Executing:  git diff B..C                                       #"
+echo -e "#  -- This is the 2-DOT mode (and is the same as above).           #"
+echo -e "####################################################################\n"
+tput sgr0
 
-echo '--- git diff B...C # 3dot -----------------------------------------------'
-git diff --color B...C
+git --no-pager diff --color B..C
 
-echo '--- diff of 2-dot output and the default --------------------------------'
+tput setaf 6
+echo -e "\n####################################################################"
+echo -e "#  Executing:  git diff B...C                                      #"
+echo -e "#  -- This is the 3-DOT mode, and the Github default for PRs.      #"
+echo -e "####################################################################\n"
+tput sgr0
+
+git --no-pager diff --color B...C
+
+# These comparisons are a little Inception-y, but they prove the point.
+tput setaf 6
+echo -e "\n####################################################################"
+echo -e "#  Compare output of 'git diff B..C' vs 'git diff B C'             #"
+echo -e "#  -- The output should be identical.                              #"
+echo -e "####################################################################\n"
+tput sgr0
+
 diff --unified --report-identical-files --color \
   diff-B-2dot-C.txt \
   diff-B-space-C.txt
 
-echo '--- diff of 2-dot output and B (from the main branch) -------------------'
+tput setaf 6
+echo -e "\n####################################################################"
+echo -e "#  Compare output of 'git diff B..C' vs 'git diff B' (from the     #"
+echo -e "#  'working' branch)                                               #"
+echo -e "#  -- The output should be identical.                              #"
+echo -e "####################################################################\n"
+tput sgr0
+
 diff --unified --report-identical-files --color \
   diff-B-2dot-C.txt \
-  diff-B-from-main.txt
+  diff-B-from-working.txt
 
-echo '--- diff of 2-dot output and C (from the working branch) ----------------'
+tput setaf 6
+echo -e "\n####################################################################"
+echo -e "#  Compare output of 'git diff B..C' vs 'git diff C' (from the     #"
+echo -e "#  'main' branch)                                                  #"
+echo -e "#  -- You might expect the output to be identical, but note that   #"
+echo -e "#     'git diff C' (from the main branch) means 'C..B' which is    #"
+echo -e "#     not the same as 'B..C' since changes are applied in reverse. #"
+echo -e "####################################################################\n"
+tput sgr0
+
 diff --unified --report-identical-files --color \
   diff-B-2dot-C.txt \
-  diff-C-from-working.txt
+  diff-C-from-main.txt
 
+tput setaf 6
+echo -e "\n####################################################################"
+echo -e "#  Compare output of 'git diff C..B' vs 'git diff C' (from the     #"
+echo -e "#  'main' branch)                                                  #"
+echo -e "#  -- If you make the comparison again, preserving the correct     #"
+echo -e "#     order of operations, the output should be identical.         #"
+echo -e "####################################################################\n"
+tput sgr0
+
+diff --unified --report-identical-files --color \
+  diff-C-2dot-B.txt \
+  diff-C-from-main.txt
+
+echo

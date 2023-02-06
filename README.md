@@ -7,8 +7,7 @@
 Since I've encountered confusion over this a few times, here's a quick overview
 of the differences between the `git diff` "2-dot" vs "3-dot" notation.
 
-* **2-dot** == `git diff B..C` == `git diff B C` == `git diff B` if on the
-  working branch == `git diff C` if on the main branch
+* **2-dot** == `git diff B..C` == `git diff B C`
   * This mode shows the changes between commit `B` and `C` and is the
     functionality you generally expect, similar to how the GNU `diff` tool will
     present changes between files and directories.
@@ -25,7 +24,7 @@ of the differences between the `git diff` "2-dot" vs "3-dot" notation.
 
 If you've created a branch, you usually only care about the changes you've made
 on that particular branch.  For short lived branches, the 3-dot diff will show
-you want you're interested in.  
+what you're interested in.  
 
 However, if you use a branching model like [git flow] or [Github flow], you'll
 often have long-lived branches.  You'll eventually find yourself merging changes
