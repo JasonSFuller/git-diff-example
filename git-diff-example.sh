@@ -84,6 +84,7 @@ git log
 git diff B C   > diff-B-space-C.txt
 git diff B..C  > diff-B-2dot-C.txt
 git diff B...C > diff-B-3dot-C.txt
+git diff A..C  > diff-A-2dot-C.txt
 git diff C..B  > diff-C-2dot-B.txt
 git checkout working && git diff B > diff-B-from-working.txt
 git checkout main    && git diff C > diff-C-from-main.txt
@@ -144,9 +145,10 @@ tput setaf 6
 echo -e "\n####################################################################"
 echo -e "#  Compare output of 'git diff B..C' vs 'git diff C' (from the     #"
 echo -e "#  'main' branch)                                                  #"
-echo -e "#  -- You might expect the output to be identical, but note that   #"
-echo -e "#     'git diff C' (from the main branch) means 'C..B' which is    #"
-echo -e "#     not the same as 'B..C' since changes are applied in reverse. #"
+echo -e "#  -- You might expect the output to be identical (similar to      #"
+echo -e "#     above), but note 'git diff C' (from the main branch) means   #"
+echo -e "#     'C..B' which is not the same as 'B..C' since changes are     #"
+echo -e "#     applied in reverse, i.e. order matters.                      #"
 echo -e "####################################################################\n"
 tput sgr0
 
@@ -166,5 +168,19 @@ tput sgr0
 diff --unified --report-identical-files --color \
   diff-C-2dot-B.txt \
   diff-C-from-main.txt
+
+tput setaf 6
+echo -e "\n####################################################################"
+echo -e "#  Compare output of 'git diff B...C' vs 'git diff A..C'           #"
+echo -e "#  -- 'B' 3-dot 'C' means find the last common commit between      #"
+echo -e "#     these two nodes, which is 'A'.                               #"
+echo -e "#  -- If 'A' is the last common commit between 'B' and 'C', then   #"
+echo -e "#     'B...C' should be identical to 'A..C'.                       #"
+echo -e "####################################################################\n"
+tput sgr0
+
+diff --unified --report-identical-files --color \
+  diff-B-3dot-C.txt \
+  diff-A-2dot-C.txt
 
 echo
