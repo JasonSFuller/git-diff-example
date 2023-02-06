@@ -71,7 +71,7 @@ ate -Ins > file_example3.txt
 git add file_example3.txt
 git commit -m 'adding example3'
 
-# create node C
+# create node B
 date '+content file B -- %F %T.%N%z' > file_B.txt
 git add file_B.txt
 git commit -m 'adding B'
